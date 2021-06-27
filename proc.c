@@ -622,17 +622,16 @@ int spinlockTest(int i) {
 // added
 struct sleeplock rw_mutex;
 struct sleeplock mutex;
-int read_count;
-int write_count;
-int sharedCounter;
+struct sleeplock shm_mutex;
+int read_count = 0;
+int write_count = 0;
+int sharedCounter = 0;
 
 int rwinit(void) {
   initsleeplock(&rw_mutex, "rw_mutex");
   initsleeplock(&mutex, "mutex");
-  read_count = 0;
-  write_count = 0;
-  sharedCounter = 0;
-  cprintf("- rw lock initialized\n");
+  initsleeplock(&shm_mutex, "mutex");
+  cprintf("lock initialized\n");
   return 0;
 }
 

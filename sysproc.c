@@ -234,3 +234,23 @@ int sys_rwtest(void)
   	return rwtest1(role);
   return -1;
 }
+
+
+//added
+int sys_shm_getat(void){
+	int id;
+	if (argint(0, &id) < 0)
+		return -1;
+	
+	return shm_getat(id);
+}
+
+//added
+int sys_shm_detach(void){
+	int id;
+	if (argint(0, &id) < 0)
+		return -1;
+		
+	return 0;
+}
+

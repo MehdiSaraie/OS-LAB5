@@ -28,3 +28,5 @@
 #define SYS_spinlockTest 27
 #define SYS_rwinit 28
 #define SYS_rwtest 29
+#define SYS_shm_getat 30
+#define SYS_shm_detach 31

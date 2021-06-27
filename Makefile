@@ -15,6 +15,7 @@ OBJS = \
 	picirq.o\
 	pipe.o\
 	proc.o\
+	sharedm.o\
 	sleeplock.o\
 	spinlock.o\
 	string.o\
@@ -189,6 +190,7 @@ UPROGS=\
 	_up_GD\
 	_spinlockTester\
 	_up_rw\
+	_up_shm\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -266,6 +268,7 @@ EXTRA=\
 	up_GD.c\
 	spinlockTester.c\
 	up_rw.c\
+	up_shm.c\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\

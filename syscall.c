@@ -111,6 +111,9 @@ extern int sys_getDescendants(void);
 extern int sys_spinlockTest(void);
 extern int sys_rwinit(void);
 extern int sys_rwtest(void);
+extern int sys_shm_getat(void);
+extern int sys_shm_detach(void);
+
 
 static int (*syscalls[])(void) = {
     [SYS_fork] sys_fork,
@@ -142,6 +145,8 @@ static int (*syscalls[])(void) = {
     [SYS_spinlockTest] sys_spinlockTest,
     [SYS_rwinit] sys_rwinit,
     [SYS_rwtest] sys_rwtest,
+    [SYS_shm_getat] sys_shm_getat,
+    [SYS_shm_detach] sys_shm_detach,
 };
 
 void
