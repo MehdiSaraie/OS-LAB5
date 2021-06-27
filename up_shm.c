@@ -24,6 +24,11 @@ int main(int argc, char *argv[]) {
 		            printf(STDOUT, "shm_getat failed\n");
 		            exit();
 		        }
+		        sleep(20);
+		        if (shm_detach(6) < 0) {
+		            printf(STDOUT, "shm_detach failed\n");
+		            exit();
+		        }
 		        break;
 		    }
 		    else if (n > 0) {   // parent

@@ -251,6 +251,6 @@ int sys_shm_detach(void){
 	if (argint(0, &id) < 0)
 		return -1;
 		
-	return 0;
+	return shm_detach(id);
 }
 

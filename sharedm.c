@@ -18,7 +18,6 @@ struct shmid_ds {
 	struct ipc_perm perm_info;
 	int ref_count;
 	int processes_attached[NPROC];
-	int attached_size;
 	uint frame;
 };
 
@@ -33,10 +32,9 @@ int shm_getat(int id){
 	int found = 0;
 	acquiresleep(&shm_mutex);
 	struct shmid_ds* seg;
-	for (seg = table.segments; seg < &table.segments[NPROC]; seg++){
+	for (seg = table.segments; seg < &table.segments[table.size]; seg++){
 		if (seg->perm_info.id == id){
 			found = 1;
-			//cprintf("found\n");
 			break;
 		}
 	}
@@ -47,18 +45,24 @@ int shm_getat(int id){
       		cprintf("kalloc failed\n");
       		return -1;
 		}
-		//cprintf("not found\n");
 		memset(mem, 0, PGSIZE);
 		seg = &table.segments[table.size++];
 		seg->frame = V2P(mem);
 		seg->perm_info.id = id;
 		seg->perm_info.mode = 1;
-		seg->attached_size = 0;
 		seg->ref_count = 0;
+		cprintf("segment %d created\n", seg->perm_info.id);
 	}
 	
 	struct proc *curproc = myproc();
 	//cprintf("proc size: %d\n", curproc->sz);
+	for(int* p = seg->processes_attached; p < &seg->processes_attached[seg->ref_count]; p++){
+		if (*p == curproc->pid){
+			cprintf("process already has been attached to segment\n");
+			return -1;
+		}
+	}
+	
 	if (seg->perm_info.mode == 2){
 		cprintf("segment not allowed (lebeled)\n");
 		return -1;
@@ -78,11 +82,56 @@ int shm_getat(int id){
 		//cprintf("frame: %d\n", seg->frame);
 	}
 	curproc->sz += PGSIZE;
-	seg->ref_count++;
-	seg->processes_attached[seg->attached_size++] = curproc->pid;
+	seg->processes_attached[seg->ref_count++] = curproc->pid;
 	//cprintf("proc size: %d\n", curproc->sz);
+	cprintf("procces %d attached to segment %d\n", curproc->pid, seg->perm_info.id);
 	releasesleep(&shm_mutex);
 	return 0;
 }
 
+int shm_detach(int id){
+	int seg_found = 0;
+	acquiresleep(&shm_mutex);
+	struct shmid_ds* seg;
+	for (seg = table.segments; seg < &table.segments[table.size]; seg++){
+		if (seg->perm_info.id == id){
+			seg_found = 1;
+			break;
+		}
+	}
+	
+	if(!seg_found){
+		cprintf("shared segment not found\n");
+		return -1;
+	}
+	
+	struct proc *curproc = myproc();
+	int proc_found = 0;
+	for(int* p = seg->processes_attached; p < &seg->processes_attached[seg->ref_count]; p++){
+		if (*p == curproc->pid){
+			proc_found = 1;
+			for(int* np = p+1; np < &seg->processes_attached[seg->ref_count]; np++) //shift left all
+				*(np-1) = *np;
+			seg->ref_count--;
+			cprintf("procces %d detached from segment %d\n", curproc->pid, seg->perm_info.id);
+			
+			if(seg->ref_count == 0 && seg->perm_info.mode == 2){
+				cprintf("segment %d destroyed\n", seg->perm_info.id);
+				for(struct shmid_ds* nseg = seg+1; nseg < &table.segments[table.size]; nseg++){
+					*(nseg-1) = *nseg;
+				}
+				table.size--;
+			}
+			break;
+		}
+	}
+	
+	if(!proc_found){
+		cprintf("process not attached to segment yet\n");
+		return -1;
+	}
+	
+	releasesleep(&shm_mutex);
+	return 0;
+}
 
