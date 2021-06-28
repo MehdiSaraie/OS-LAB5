@@ -9,7 +9,68 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
-struct shmid_ds; //added
+//struct shmid_ds; //added
+// added
+#define SHM_SIZE 1024
+#define NPROC 64
+#define NOFILE       16
+
+// Mutual exclusion lock.
+struct spinlock {
+  uint locked;       // Is the lock held?
+
+  // For debugging:
+  char *name;        // Name of lock.
+  struct cpu *cpu;   // The cpu holding the lock.
+  uint pcs[10];      // The call stack (an array of program counters)
+                     // that locked the lock.
+  int pid;
+  int depth;
+};
+
+enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+
+// Per-process state
+struct proc {
+  uint sz;                     // Size of process memory (bytes)
+  pde_t* pgdir;                // Page table
+  char *kstack;                // Bottom of kernel stack for this process
+  enum procstate state;        // Process state
+  int pid;                     // Process ID
+  struct proc *parent;         // Parent process
+  struct trapframe *tf;        // Trap frame for current syscall
+  struct context *context;     // swtch() here to run process
+  void *chan;                  // If non-zero, sleeping on chan
+  int killed;                  // If non-zero, have been killed
+  struct file *ofile[NOFILE];  // Open files
+  struct inode *cwd;           // Current directory
+  char name[16];               // Process name (debugging)
+  uint startTime;              // added - time of creation
+  struct proc *youngestChild;  // added - the youngest child process
+  int hasChild;                // added - check if process has children processes
+};
+
+struct {
+  struct spinlock lock;
+  struct proc proc[NPROC];
+} ptable;
+
+struct ipc_perm {
+	int id;
+	int mode;
+};
+
+struct shmid_ds {
+	struct ipc_perm perm_info;
+	int ref_count;
+	int processes_attached[NPROC];
+	int frame;
+};
+
+struct shm_table {
+	struct shmid_ds segments[SHM_SIZE];
+	int size;
+};
 
 // bio.c
 void            binit(void);

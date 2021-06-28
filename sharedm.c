@@ -126,7 +126,41 @@ int shm_detach(int id){
 int shm_ctl(int shmid, int cmd, struct shmid_ds* buf){
 	acquiresleep(&shm_mutex);
 	if (cmd == 0){ //IPC_SET
-	
+		int seg_found = 0;
+		struct shmid_ds* seg;
+		for (seg = table.segments; seg < &table.segments[table.size]; seg++){
+			if (seg->perm_info.id == shmid){
+				seg_found = 1;
+				seg->perm_info.mode = buf->perm_info.mode;
+				seg->perm_info.id = buf->perm_info.id;
+				
+				pte_t* pte;
+				for(int* atp = seg->processes_attached; atp < &seg->processes_attached[seg->ref_count]; atp++){
+					for(struct proc* p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+						
+						if(p->pid == *atp){
+							for(uint i = 0; i < p->sz; i += PGSIZE){
+								pte = walkpgdir(p->pgdir, (void*)i, 0);
+								if (PTE_ADDR(*pte) == seg->frame){
+									if(seg->perm_info.mode == 0)
+										*pte &= ~PTE_W;
+									else if(seg->perm_info.mode == 1)
+										*pte |= PTE_W;
+								}
+							}
+							lcr3(V2P(p->pgdir));
+						}
+						
+    				}
+    			}
+				break;
+			}
+		}
+		if(!seg_found){
+			cprintf("segment not found\n");
+			releasesleep(&shm_mutex);
+			return -1;
+		}
 	}
 	else if (cmd == 1){ //IPC_STAT
 		int seg_found = 0;
