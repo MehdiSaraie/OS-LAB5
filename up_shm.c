@@ -25,7 +25,11 @@ int main(int argc, char *argv[]) {
         exit();
     }
 
-	struct shmid_ds buf;
+	struct shmid_ds get_buf;
+	struct shmid_ds set_buf;
+	set_buf.perm_info.id = 6;
+	set_buf.perm_info.mode = 0;
+
 	int program_id = getpid();
 	
 	if (rwinit() < 0)
@@ -39,11 +43,22 @@ int main(int argc, char *argv[]) {
 		            printf(STDOUT, "shm_getat failed\n");
 		            exit();
 		        }
-				if (shm_ctl(6, 1, &buf) < 0) {
-					printf(STDOUT, "shm_ctl failed\n");
-		            exit();
+				if (i == 0) {
+					if (shm_ctl(6, 1, &get_buf) < 0) {
+						printf(STDOUT, "shm_ctl_1 failed\n");
+						exit();
+					}
+					printf(STDOUT,"(before) shm_id: %d\nmode: %d\n", get_buf.perm_info.id, get_buf.perm_info.mode);
+					if (shm_ctl(6, 0, &set_buf) < 0) {
+						printf(STDOUT, "shm_ctl_2 failed\n");
+						exit();
+					}
+					if (shm_ctl(6, 1, &get_buf) < 0) {
+						printf(STDOUT, "shm_ctl_1 failed\n");
+						exit();
+					}
+					printf(STDOUT,"(after) shm_id: %d\nmode: %d\n", get_buf.perm_info.id, get_buf.perm_info.mode);
 				}
-				printf(STDOUT,"shm_id: %d\nmode: %d\n", buf.perm_info.id, buf.perm_info.mode);
 		        sleep(20);
 		        if (shm_detach(6) < 0) {
 		            printf(STDOUT, "shm_detach failed\n");
