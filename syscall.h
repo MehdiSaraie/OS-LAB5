@@ -30,3 +30,4 @@
 #define SYS_rwtest 29
 #define SYS_shm_getat 30
 #define SYS_shm_detach 31
+#define SYS_shm_ctl 32

@@ -43,6 +43,7 @@ int shm_getat(int id){
 		char* mem = kalloc();
 		if(mem == 0){
       		cprintf("kalloc failed\n");
+      		releasesleep(&shm_mutex);
       		return -1;
 		}
 		memset(mem, 0, PGSIZE);
@@ -59,12 +60,14 @@ int shm_getat(int id){
 	for(int* p = seg->processes_attached; p < &seg->processes_attached[seg->ref_count]; p++){
 		if (*p == curproc->pid){
 			cprintf("process already has been attached to segment\n");
+			releasesleep(&shm_mutex);
 			return -1;
 		}
 	}
 	
 	if (seg->perm_info.mode == 2){
 		cprintf("segment not allowed (lebeled)\n");
+		releasesleep(&shm_mutex);
 		return -1;
 	}
 	else if (seg->perm_info.mode == 1){ //rw
@@ -77,6 +80,7 @@ int shm_getat(int id){
 	else if (seg->perm_info.mode == 0){ //r
 		if(mappages(curproc->pgdir, (char*)PGROUNDUP(curproc->sz), PGSIZE, seg->frame, PTE_W|PTE_U) < 0){
 			cprintf("mappages failed\n");
+			releasesleep(&shm_mutex);
 			return -1;
 		}
 		//cprintf("frame: %d\n", seg->frame);
@@ -102,6 +106,7 @@ int shm_detach(int id){
 	
 	if(!seg_found){
 		cprintf("shared segment not found\n");
+		releasesleep(&shm_mutex);
 		return -1;
 	}
 	
@@ -128,7 +133,38 @@ int shm_detach(int id){
 	
 	if(!proc_found){
 		cprintf("process not attached to segment yet\n");
+		releasesleep(&shm_mutex);
 		return -1;
+	}
+	
+	releasesleep(&shm_mutex);
+	return 0;
+}
+
+int shm_ctl(int shmid, int cmd, struct shmid_ds* buf){
+	acquiresleep(&shm_mutex);
+	if (cmd == 0){ //IPC_SET
+	
+	}
+	else if (cmd == 1){ //IPC_STAT
+		int seg_found = 0;
+		struct shmid_ds* seg;
+		for (seg = table.segments; seg < &table.segments[table.size]; seg++){
+			if (seg->perm_info.id == shmid){
+				seg_found = 1;
+				buf->perm_info.mode = seg->perm_info.mode;
+				buf->perm_info.id = seg->perm_info.id;
+				break;
+			}
+		}
+		if(!seg_found){
+			cprintf("segment not found\n");
+			releasesleep(&shm_mutex);
+			return -1;
+		}
+	}
+	else if (cmd == 2){ //IPC_RMID
+		
 	}
 	
 	releasesleep(&shm_mutex);

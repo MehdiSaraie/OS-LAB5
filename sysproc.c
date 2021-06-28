@@ -254,3 +254,14 @@ int sys_shm_detach(void){
 	return shm_detach(id);
 }
 
+//added
+//struct shmid_ds;
+int sys_shm_ctl(void){
+	int shmid, cmd;
+	struct shmid_ds *buf;
+	if (argint(0, &shmid) < 0 || argint(1, &cmd) < 0 || argptr(2, (void*)&buf, sizeof(*buf)) < 0)
+		return -1;
+		
+	return shm_ctl(shmid, cmd, buf);
+}
+
