@@ -1,5 +1,6 @@
 struct stat;
 struct rtcdate;
+struct shmid_ds; //added
 
 // system calls
 int fork(void);
@@ -31,6 +32,9 @@ int getDescendants(int);
 int spinlockTest(int);
 int rwinit(void);
 int rwtest(int, int);
+int shm_getat(int);
+int shm_detach(int);
+int shm_ctl(int shmid, int cmd, struct shmid_ds* buf);
 
 // ulib.c
 int stat(const char*, struct stat*);

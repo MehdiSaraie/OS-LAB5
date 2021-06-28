@@ -113,6 +113,7 @@ extern int sys_rwinit(void);
 extern int sys_rwtest(void);
 extern int sys_shm_getat(void);
 extern int sys_shm_detach(void);
+extern int sys_shm_ctl(void);
 
 
 static int (*syscalls[])(void) = {
@@ -147,6 +148,7 @@ static int (*syscalls[])(void) = {
     [SYS_rwtest] sys_rwtest,
     [SYS_shm_getat] sys_shm_getat,
     [SYS_shm_detach] sys_shm_detach,
+    [SYS_shm_ctl] sys_shm_ctl,
 };
 
 void
