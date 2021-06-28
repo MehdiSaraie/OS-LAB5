@@ -78,7 +78,7 @@ int shm_getat(int id){
 		//cprintf("frame: %d\n", seg->frame);
 	}
 	else if (seg->perm_info.mode == 0){ //r
-		if(mappages(curproc->pgdir, (char*)PGROUNDUP(curproc->sz), PGSIZE, seg->frame, PTE_W|PTE_U) < 0){
+		if(mappages(curproc->pgdir, (char*)PGROUNDUP(curproc->sz), PGSIZE, seg->frame, PTE_U) < 0){
 			cprintf("mappages failed\n");
 			releasesleep(&shm_mutex);
 			return -1;
