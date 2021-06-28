@@ -159,12 +159,26 @@ int shm_ctl(int shmid, int cmd, struct shmid_ds* buf){
 		}
 		if(!seg_found){
 			cprintf("segment not found\n");
-			releasesleep(&shm_mutex);
 			return -1;
 		}
 	}
 	else if (cmd == 2){ //IPC_RMID
-		
+		int found = 0;
+		struct shmid_ds* seg;
+		for (seg = table.segments; seg < &table.segments[table.size]; seg++){
+			if (seg->perm_info.id == shmid){
+				found = 1;
+				break;
+			}
+		}
+	
+		if(!found){
+			cprintf("segment %d not found\n", seg->perm_info.id);
+			return -1;
+		}
+
+		seg->perm_info.mode = 2;
+		return 0;
 	}
 	
 	releasesleep(&shm_mutex);
