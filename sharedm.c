@@ -7,24 +7,6 @@
 #include "x86.h"
 #include "elf.h"
 
-#define SHM_SIZE 1024
-
-struct ipc_perm {
-	int id;
-	int mode;
-};
-
-struct shmid_ds {
-	struct ipc_perm perm_info;
-	int ref_count;
-	int processes_attached[NPROC];
-	uint frame;
-};
-
-struct shm_table {
-	struct shmid_ds segments[SHM_SIZE];
-	int size;
-};
 
 struct shm_table table = {.size = 0};
 

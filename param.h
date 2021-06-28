@@ -12,3 +12,23 @@
 #define NBUF         (MAXOPBLOCKS*3)  // size of disk block cache
 #define FSSIZE       1000  // size of file system in blocks
 
+// added
+#define SHM_SIZE 1024
+
+struct ipc_perm {
+	int id;
+	int mode;
+};
+
+struct shmid_ds {
+	struct ipc_perm perm_info;
+	int ref_count;
+	int processes_attached[NPROC];
+	int frame;
+};
+
+struct shm_table {
+	struct shmid_ds segments[SHM_SIZE];
+	int size;
+};
+
