@@ -178,6 +178,13 @@ int shm_ctl(int shmid, int cmd, struct shmid_ds* buf){
 		}
 
 		seg->perm_info.mode = 2;
+		if(seg->ref_count == 0){
+			cprintf("segment %d destroyed\n", seg->perm_info.id);
+			for(struct shmid_ds* nseg = seg+1; nseg < &table.segments[table.size]; nseg++){
+				*(nseg-1) = *nseg;
+			}
+			table.size--;
+		}
 		return 0;
 	}
 	
